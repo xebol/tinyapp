@@ -47,6 +47,11 @@ app.get('/urls/:id', (req, res) => {
 
 });
 
+app.post('/urls/:id', (req, res) => {
+  urlDatabase[req.params.id] = req.body.url;
+  res.redirect('/urls');
+});
+
 app.post('/urls', (req, res) => {
   const uniqueID = generateRandomString();
   urlDatabase[uniqueID] = req.body.longURL;
