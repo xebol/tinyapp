@@ -2,6 +2,16 @@ const express = require('express');
 const app = express();
 const PORT = 8080;
 
+const generateRandomString = function() {
+  const string = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789'
+  let uniqueID = '';
+  for (let i = 0; i < 6; i++) {
+    uniqueID += string.charAt(Math.floor(Math.random() * string.length));
+  }
+  return uniqueID;
+};
+
+app.use(express.urlencoded({ extended: true }));
 app.set('view engine', 'ejs');
 
 const urlDatabase = {
@@ -26,10 +36,19 @@ app.get("/urls", (req, res) => {
   res.render("urls_index", templateVars);
 });
 
+app.get("/urls/new", (req, res) => {
+  res.render("urls_new");
+});
+
 app.get('/urls/:id', (req, res) => {
   const templateVars = { id: req.params.id, longURL: urlDatabase[req.params.id] };
   res.render('urls_show', templateVars);
 
+});
+
+app.post('/urls', (req, res) => {
+  console.log(req.body);
+  res.send('Ok');
 });
 
 app.listen(PORT, () => {
