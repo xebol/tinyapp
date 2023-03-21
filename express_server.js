@@ -2,8 +2,9 @@ const express = require('express');
 const app = express();
 const PORT = 8080;
 
+
 const generateRandomString = function() {
-  const string = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789'
+  const string = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
   let uniqueID = '';
   for (let i = 0; i < 6; i++) {
     uniqueID += string.charAt(Math.floor(Math.random() * string.length));
@@ -47,8 +48,16 @@ app.get('/urls/:id', (req, res) => {
 });
 
 app.post('/urls', (req, res) => {
-  console.log(req.body);
-  res.send('Ok');
+  const uniqueID = generateRandomString();
+  urlDatabase[uniqueID] = req.body.longURL;
+
+  res.redirect(`/urls/${uniqueID}`);
+});
+
+app.get('/u/:id', (req, res) => {
+  const longURL = urlDatabase[req.params.id]
+
+  res.redirect(longURL);
 });
 
 app.listen(PORT, () => {
