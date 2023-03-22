@@ -14,7 +14,11 @@
     <form method="POST" action="/login">
     <input type="text" 
     name="username"/>
-       <button type="Submit" class="btn btn-outline-primary">Login</button>
+       <% if(username){ %>
+        <%= username %>
+       <% } else { %>
+         <button type="Submit" class="btn btn-outline-primary">Login</button>
+         <% } %>
     </form>
   </nav>
 </header>
