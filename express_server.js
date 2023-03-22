@@ -14,6 +14,15 @@ const generateRandomString = function() {
   return uniqueID;
 };
 
+const getUserByEmail = function(email) {
+  for (let key in users) {
+    if (users[key].email === email) {
+      return users[key];
+    }
+  }
+  return null;
+};
+
 app.use(express.urlencoded({ extended: true })); //populates req.body
 app.use(morgan('dev')); //console logs the request coming on the terminal
 app.set('view engine', 'ejs'); //set the view engine to ejs templates
@@ -25,12 +34,12 @@ const urlDatabase = {
 };
 
 const users = {
-  userOne: {
+  Harry: {
     id: 'Harry',
     email: 'harry@mail.com',
     password: 'avada'
   },
-  userTwo: {
+  Hermione: {
     id: 'Hermione',
     email: 'hermione@mail.com',
     password: 'leviosa'
@@ -47,7 +56,7 @@ app.get('/urls.json', (req, res) => {
 });
 
 app.get("/urls", (req, res) => {
-  const userID = req.cookies['user_id']
+  const userID = req.cookies['user_id'];
   const user = users[userID];
   const templateVars = {
     urls: urlDatabase,
@@ -57,8 +66,8 @@ app.get("/urls", (req, res) => {
 });
 
 app.get("/urls/new", (req, res) => {
-  const userID = req.cookie['user_id']
-  const user = users[userID]
+  const userID = req.cookie['user_id'];
+  const user = users[userID];
   const templateVars = {
     user: user
   };
@@ -66,8 +75,8 @@ app.get("/urls/new", (req, res) => {
 });
 
 app.get('/urls/:id', (req, res) => {
-  const userID = req.cookies['user_id']
-  const user = users[userID]
+  const userID = req.cookies['user_id'];
+  const user = users[userID];
   const templateVars = {
     id: req.params.id,
     longURL: urlDatabase[req.params.id],
@@ -108,18 +117,25 @@ app.get('/register', (req, res) => {
 
 //Register post endpoint
 app.post('/register', (req, res) => {
-  console.log('data', req.body);
+  const email = req.body.email;
+  const password = req.body.password;
+
+  if (!email || !password) {
+    return res.status(400).send('Please provide email and password.');
+  }
+
+  const user = getUserByEmail(email);
+  if (user) {
+    return res.status(400).send('That email is alredy in use. Please provide a different email.');
+  }
+
   const userID = generateRandomString();
   users[userID] = {
     id: userID,
     email: req.body.email,
     password: req.body.password
   };
-
-  if(!email || !password) {
-
-  }
-  return res.statusCode(400).send
+  
   res.cookie('user_id', userID);
   res.redirect('/urls');
 });
