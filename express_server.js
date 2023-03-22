@@ -55,7 +55,7 @@ app.get('/urls.json', (req, res) => {
   res.json(urlDatabase);
 });
 
-app.get("/urls", (req, res) => {
+app.get('/urls', (req, res) => {
   const userID = req.cookies['user_id'];
   const user = users[userID];
   const templateVars = {
@@ -65,13 +65,13 @@ app.get("/urls", (req, res) => {
   res.render("urls_index", templateVars);
 });
 
-app.get("/urls/new", (req, res) => {
+app.get('/urls/new', (req, res) => {
   const userID = req.cookie['user_id'];
   const user = users[userID];
   const templateVars = {
     user: user
   };
-  res.render("urls_new", templateVars);
+  res.render('urls_new', templateVars);
 });
 
 app.get('/urls/:id', (req, res) => {
@@ -115,6 +115,10 @@ app.get('/register', (req, res) => {
   res.render('urls_register');
 });
 
+app.get('/login', (req, res) => {
+  res.render('urls_login');
+});
+
 //Register post endpoint
 app.post('/register', (req, res) => {
   const email = req.body.email;
@@ -135,15 +139,28 @@ app.post('/register', (req, res) => {
     email: req.body.email,
     password: req.body.password
   };
-  
+
   res.cookie('user_id', userID);
   res.redirect('/urls');
 });
 
+
 //Creating cookies
 app.post('/login', (req, res) => {
-  const { user } = req.body;
-  res.cookie('user_id', user);
+  const email = req.body.email;
+  const password = req.body.password;
+
+  if (!email || !password) {
+    return res.status(400).send('Please provide email and password.');
+  }
+  const user = getUserByEmail(email);
+  if (!user) {
+    return res.status(403).send('Email cannot be found.');
+  }
+  if (password !== user.password) {
+    return res.status(403).send('Invalid Password.');
+  }
+  res.cookie('user_id', user.id);
   res.redirect('/urls');
 });
 
@@ -151,7 +168,6 @@ app.post('/login', (req, res) => {
 app.post('/logout', (req, res) => {
   res.clearCookie('user_id');
   res.redirect('/urls');
-
 });
 
 app.listen(PORT, () => {
