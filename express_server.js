@@ -66,7 +66,7 @@ app.get('/urls', (req, res) => {
 });
 
 app.get('/urls/new', (req, res) => {
-  const userID = req.cookie['user_id'];
+  const userID = req.cookies['user_id'];
   const user = users[userID];
   const templateVars = {
     user: user
@@ -141,7 +141,7 @@ app.post('/register', (req, res) => {
   };
 
   res.cookie('user_id', userID);
-  res.redirect('/urls');
+  res.redirect('/urls/new');
 });
 
 
@@ -161,13 +161,13 @@ app.post('/login', (req, res) => {
     return res.status(403).send('Invalid Password.');
   }
   res.cookie('user_id', user.id);
-  res.redirect('/urls');
+  res.redirect('/urls/new');
 });
 
 //Clearing cookies
 app.post('/logout', (req, res) => {
   res.clearCookie('user_id');
-  res.redirect('/urls');
+  res.redirect('/login');
 });
 
 app.listen(PORT, () => {
