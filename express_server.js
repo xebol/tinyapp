@@ -1,9 +1,14 @@
 const express = require('express');
 const app = express();
 const morgan = require('morgan');
+const bcrypt = require('bcryptjs');
 const cookieParser = require('cookie-parser');
 const PORT = 8080;
 
+app.use(express.urlencoded({ extended: true })); //populates req.body
+app.use(morgan('dev')); //console logs the request coming on the terminal
+app.set('view engine', 'ejs'); //set the view engine to ejs templates
+app.use(cookieParser()); //populates req.cookies
 
 const generateRandomString = function() {
   const string = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
@@ -13,7 +18,6 @@ const generateRandomString = function() {
   }
   return uniqueID;
 };
-
 const getUserByEmail = function(email) {
   for (let key in users) {
     if (users[key].email === email) {
@@ -35,12 +39,6 @@ const urlsForUser = function(userId) {
   return result;
 };
 
-app.use(express.urlencoded({ extended: true })); //populates req.body
-app.use(morgan('dev')); //console logs the request coming on the terminal
-app.set('view engine', 'ejs'); //set the view engine to ejs templates
-app.use(cookieParser()); //populates req.cookies
-
-
 const urlDatabase = {
   b6UTxQ: {
     longURL: "https://www.tsn.ca",
@@ -56,18 +54,18 @@ const users = {
   'abc123': {
     id: 'abc123',
     email: 'a@a.com',
-    password: '1'
+    password: '$2a$10$6Z24AtPDa.4PPGIr5boFhePdHJ/rIyFGAlRv0uAqpqn2pjup4rh92' //1234
   },
   'def435': {
     id: 'def435',
     email: 'b@b.com',
-    password: '1'
+    password: '$2a$10$6Z24AtPDa.4PPGIr5boFhePdHJ/rIyFGAlRv0uAqpqn2pjup4rh92' //1234
   }
 };
 
 //Homepage
 app.get('/', (req, res) => {
-  res.send('Welcome to the home page!');
+  res.send('<p>Welcome to the home page!</p>');
 });
 
 app.get('/urls.json', (req, res) => {
@@ -83,6 +81,7 @@ app.get('/urls', (req, res) => {
     urls: userURLs,
     user: user
   };
+
   if (!user) {
     return res.status(401).send('<p>Make sure you are logged in</p>');
   }
@@ -93,9 +92,11 @@ app.get('/urls', (req, res) => {
 //If user is not logged in. Redirects to login page
 app.get('/urls/new', (req, res) => {
   const userID = req.cookies['user_id'];
+
   if (!userID) {
     return res.redirect('/login');
   }
+
   const user = users[userID];
   const templateVars = {
     user: user
@@ -223,12 +224,14 @@ app.post('/register', (req, res) => {
   if (user) {
     return res.status(400).send('That email is alredy in use. Please provide a different email.');
   }
+  const salt = bcrypt.genSaltSync(10);
+  const hash = bcrypt.hashSync(password, salt);
 
   const userID = generateRandomString();
   users[userID] = {
     id: userID,
     email: req.body.email,
-    password: req.body.password
+    password: hash
   };
 
   res.cookie('user_id', userID);
@@ -242,15 +245,18 @@ app.post('/login', (req, res) => {
   const password = req.body.password;
 
   if (!email || !password) {
-    return res.status(400).send('Please provide email and password.');
+    return res.status(400).send('<p>Please provide email and password</p>');
   }
   const user = getUserByEmail(email);
   if (!user) {
-    return res.status(403).send('Email cannot be found.');
+    return res.status(403).send('<p>No user with that email found</p>');
   }
-  if (password !== user.password) {
-    return res.status(403).send('Invalid Password.');
+  
+  const result = bcrypt.compareSync(password, user.password);
+  if (!result) {
+    return res.status(403).send('<p>Invalid Password</p>');
   }
+
   res.cookie('user_id', user.id);
   res.redirect('/urls');
 });
