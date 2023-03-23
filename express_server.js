@@ -120,10 +120,22 @@ app.get('/urls/:id', (req, res) => {
 });
 
 app.post('/urls/:id', (req, res) => {
-  urlDatabase[req.params.id] = req.body.url;
+  const url = urlDatabase[req.params.id];
+  const userID = req.cookies['user_id'];
 
-  console.log('data', urlDatabase[req.params.id])
-  console.log('req.body.url', req.body.url)
+  //check if the ID is in the database
+  if (!urlDatabase[req.params.id]) {
+    return res.status(400).send('<p>The ID does not exist.</p>');
+  }
+  //check if user is logged in
+  if (!userID) {
+    return res.status(400).send('<p>Please login to continue.</p>');
+  }
+  //check if userID matches the URL
+  if (userID !== url.userID) {
+    return res.status(400).send('<p>URL provided does not match</p>');
+  }
+  urlDatabase[req.params.id].longURL = req.body.url;
   res.redirect('/urls');
 });
 
@@ -147,13 +159,12 @@ app.get('/u/:id', (req, res) => {
   const userID = req.cookies['user_id'];
   const url = urlDatabase[req.params.id];
 
+  //checks if the user is logged in
   if (!userID) {
     return res.status(401).send('<p>Make sure you are logged in</p>');
   }
-  if (!url) {
-    return res.status(404).send('<p>ID not found</p>');
-  }
 
+  //checks if the user owns the url
   if (userID !== url.userID) {
     return res.status(401).send('<p>Error</p>');
   }
@@ -162,6 +173,22 @@ app.get('/u/:id', (req, res) => {
 
 //deletes the current url
 app.post('/urls/:id/delete', (req, res) => {
+  const url = urlDatabase[req.params.id];
+  const userID = req.cookies['user_id'];
+
+  //check if the ID is in the database
+  if (!urlDatabase[req.params.id]) {
+    return res.status(400).send('<p>The ID does not exist.</p>');
+  }
+  //check if user is logged in
+  if (!userID) {
+    return res.status(400).send('<p>Please login to continue.</p>');
+  }
+  //check if userID matches the URL
+  if (userID !== url.userID) {
+    return res.status(400).send('<p>URL provided does not match</p>');
+  }
+  //deletes
   delete urlDatabase[req.params.id];
   res.redirect('/urls');
 });
