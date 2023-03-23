@@ -28,11 +28,17 @@ app.use(morgan('dev')); //console logs the request coming on the terminal
 app.set('view engine', 'ejs'); //set the view engine to ejs templates
 app.use(cookieParser()); //populates req.cookies
 
-const urlDatabase = {
-  "b2xVn2": "http://www.lighthouselabs.ca",
-  "9sm5xK": "http://www.google.com"
-};
 
+const urlDatabase = {
+  b6UTxQ: {
+    longURL: "https://www.tsn.ca",
+    userID: "aJ48lW",
+  },
+  i3BoGr: {
+    longURL: "https://www.google.ca",
+    userID: "aJ48lW",
+  },
+};
 const users = {
   Harry: {
     id: 'Harry',
@@ -65,12 +71,17 @@ app.get('/urls', (req, res) => {
   res.render("urls_index", templateVars);
 });
 
+//If user is not logged in. Redirects to login page
 app.get('/urls/new', (req, res) => {
   const userID = req.cookies['user_id'];
+  if (!userID) {
+    return res.redirect('/login');
+  }
   const user = users[userID];
   const templateVars = {
     user: user
   };
+
   res.render('urls_new', templateVars);
 });
 
@@ -79,7 +90,7 @@ app.get('/urls/:id', (req, res) => {
   const user = users[userID];
   const templateVars = {
     id: req.params.id,
-    longURL: urlDatabase[req.params.id],
+    longURL: urlDatabase[req.params.id].longURL,
     user: user
   };
   res.render('urls_show', templateVars);
@@ -91,15 +102,30 @@ app.post('/urls/:id', (req, res) => {
   res.redirect('/urls');
 });
 
+//Checks if the user is logged in before adding a url into the database
 app.post('/urls', (req, res) => {
-  const uniqueID = generateRandomString();
-  urlDatabase[uniqueID] = req.body.longURL;
+  const user = req.cookies['user_id'];
 
+  if (!user) {
+    return res.status(400).send('<p>Please login to continue.</p>');
+  }
+
+  const userID = generateRandomString();
+  const uniqueID = generateRandomString();
+  urlDatabase[uniqueID] = {
+    longURL: req.body.longURL,
+    userID: userID
+  };
   res.redirect(`/urls/${uniqueID}`);
 });
 
+//handles short URL that does not exist in the database
 app.get('/u/:id', (req, res) => {
-  const longURL = urlDatabase[req.params.id];
+  const longURL = urlDatabase[req.params.id].longURL;
+
+  if (!longURL) {
+    return res.status(404).send('<p>ID not found</p>');
+  }
 
   res.redirect(longURL);
 });
@@ -112,10 +138,18 @@ app.post('/urls/:id/delete', (req, res) => {
 
 //Registering users
 app.get('/register', (req, res) => {
+  const user = req.cookies['user_id'];
+  if (user) {
+    res.redirect('/urls');
+  }
   res.render('urls_register');
 });
 
 app.get('/login', (req, res) => {
+  const user = req.cookies['user_id'];
+  if (user) {
+    res.redirect('/urls');
+  }
   res.render('urls_login');
 });
 
@@ -141,7 +175,7 @@ app.post('/register', (req, res) => {
   };
 
   res.cookie('user_id', userID);
-  res.redirect('/urls/new');
+  res.redirect('/urls');
 });
 
 
@@ -161,7 +195,7 @@ app.post('/login', (req, res) => {
     return res.status(403).send('Invalid Password.');
   }
   res.cookie('user_id', user.id);
-  res.redirect('/urls/new');
+  res.redirect('/urls');
 });
 
 //Clearing cookies
