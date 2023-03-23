@@ -22,6 +22,18 @@ const getUserByEmail = function(email) {
   }
   return null;
 };
+const urlsForUser = function(userId) {
+  const result = {};
+  for (let key in urlDatabase) {
+    if (urlDatabase[key].userID === userId) {
+      result[key] = {
+        longURL: urlDatabase[key].longURL,
+        userID: userId
+      };
+    }
+  }
+  return result;
+};
 
 app.use(express.urlencoded({ extended: true })); //populates req.body
 app.use(morgan('dev')); //console logs the request coming on the terminal
@@ -39,16 +51,17 @@ const urlDatabase = {
     userID: "aJ48lW",
   },
 };
+
 const users = {
-  Harry: {
-    id: 'Harry',
-    email: 'harry@mail.com',
-    password: 'avada'
+  'abc123': {
+    id: 'abc123',
+    email: 'a@a.com',
+    password: '1'
   },
-  Hermione: {
-    id: 'Hermione',
-    email: 'hermione@mail.com',
-    password: 'leviosa'
+  'def435': {
+    id: 'def435',
+    email: 'b@b.com',
+    password: '1'
   }
 };
 
@@ -64,10 +77,16 @@ app.get('/urls.json', (req, res) => {
 app.get('/urls', (req, res) => {
   const userID = req.cookies['user_id'];
   const user = users[userID];
+  const userURLs = urlsForUser(userID);
+
   const templateVars = {
-    urls: urlDatabase,
+    urls: userURLs,
     user: user
   };
+  if (!user) {
+    return res.status(401).send('<p>Make sure you are logged in</p>');
+  }
+
   res.render("urls_index", templateVars);
 });
 
@@ -93,24 +112,28 @@ app.get('/urls/:id', (req, res) => {
     longURL: urlDatabase[req.params.id].longURL,
     user: user
   };
+  if (!user) {
+    return res.status(400).send('Make sure you are logged in');
+  }
   res.render('urls_show', templateVars);
 
 });
 
 app.post('/urls/:id', (req, res) => {
   urlDatabase[req.params.id] = req.body.url;
+
+  console.log('data', urlDatabase[req.params.id])
+  console.log('req.body.url', req.body.url)
   res.redirect('/urls');
 });
 
 //Checks if the user is logged in before adding a url into the database
 app.post('/urls', (req, res) => {
-  const user = req.cookies['user_id'];
+  const userID = req.cookies['user_id'];
 
-  if (!user) {
+  if (!userID) {
     return res.status(400).send('<p>Please login to continue.</p>');
   }
-
-  const userID = generateRandomString();
   const uniqueID = generateRandomString();
   urlDatabase[uniqueID] = {
     longURL: req.body.longURL,
@@ -121,13 +144,20 @@ app.post('/urls', (req, res) => {
 
 //handles short URL that does not exist in the database
 app.get('/u/:id', (req, res) => {
-  const longURL = urlDatabase[req.params.id].longURL;
+  const userID = req.cookies['user_id'];
+  const url = urlDatabase[req.params.id];
 
-  if (!longURL) {
+  if (!userID) {
+    return res.status(401).send('<p>Make sure you are logged in</p>');
+  }
+  if (!url) {
     return res.status(404).send('<p>ID not found</p>');
   }
 
-  res.redirect(longURL);
+  if (userID !== url.userID) {
+    return res.status(401).send('<p>Error</p>');
+  }
+  res.redirect(url.longURL);
 });
 
 //deletes the current url
