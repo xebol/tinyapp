@@ -5,7 +5,7 @@
   <!-- Bootstrap CSS -->
   <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.2.1/css/bootstrap.min.css"
     integrity="sha384-GJzZqFGwb1QTTN6wy59ffF1BuGJpLSa9DkKMp0DgiMDm4iYMj70gZWKYbI706tWS" crossorigin="anonymous" />
-    
+
   <meta charset="UTF-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -14,17 +14,19 @@
 
 <body>
   <%- include('partials/_header') %>
-  <span style="padding-left: 100px;"><h1>Create an Account</h1></span>
-  <div>
-    <form method="POST" action="/register">
-    <label for="email">Email</label>
-    <input type="email" name="email" id="email"/>
-    <label for="password">Password</label>
-    <input type="password" name="password" id="password"/>
-    <button type="submit" class="btn btn-outline-primary">Register</button>
-  </form>
-</div>
-  
+    <span style="padding-left: 100px;">
+      <h1>Create an Account</h1>
+    </span>
+    <div>
+      <form method="POST" action="/register">
+        <label for="email">Email</label>
+        <input type="email" name="email" id="email" />
+        <label for="password">Password</label>
+        <input type="password" name="password" id="password" />
+        <button type="submit" class="btn btn-outline-primary">Register</button>
+      </form>
+    </div>
+
 </body>
 
 </html>

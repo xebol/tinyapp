@@ -12,16 +12,18 @@
 
 <body>
   <%- include('partials/_header') %>
-  <span style="padding-left: 100px"><h1>Login</h1></span>
-  <div>
-  <form method="POST" action="/login" class="m-2">
-    <label for="email">Email</label>
-    <input type="email" name="email" id="email" />
-    <label for="password">Password</label>
-    <input type="password" name="password" />
-    <button type="submit" class="btn btn-outline-primary">Login</button>
-  </form>
-</div>
+    <span style="padding-left: 100px">
+      <h1>Login</h1>
+    </span>
+    <div>
+      <form method="POST" action="/login" class="m-2">
+        <label for="email">Email</label>
+        <input type="email" name="email" id="email" />
+        <label for="password">Password</label>
+        <input type="password" name="password" />
+        <button type="submit" class="btn btn-outline-primary">Login</button>
+      </form>
+    </div>
 </body>
 
 </html>
