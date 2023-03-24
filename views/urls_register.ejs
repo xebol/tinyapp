@@ -13,13 +13,18 @@
 </head>
 
 <body>
-  <form method="POST" action="/register">
+  <%- include('partials/_header') %>
+  <span style="padding-left: 100px;"><h1>Create an Account</h1></span>
+  <div>
+    <form method="POST" action="/register">
     <label for="email">Email</label>
     <input type="email" name="email" id="email"/>
     <label for="password">Password</label>
     <input type="password" name="password" id="password"/>
     <button type="submit" class="btn btn-outline-primary">Register</button>
   </form>
+</div>
+  
 </body>
 
 </html>

@@ -22,9 +22,10 @@
         </p>
       </div>
       <div class="card-footer text-muted">
-        <form method="POST" action="/urls/<%= id %>">
+        <form method="POST" action="/urls/<%= id %>" >
         <input type="text" 
-        name="url"/>
+        name="url"
+        required/>
         <button type="submit" class="btn btn-outline-success">Edit</button>
       </form>
     </div>
