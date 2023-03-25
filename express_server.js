@@ -18,7 +18,8 @@ app.use(cookieSession({
 
 //Homepage
 app.get('/', (req, res) => {
-  res.send('<p>Welcome to the home page!</p>');
+  //tells user where to login
+  res.send('<h1>Welcome to the home page!</h1> Please login <a href="/login">here<a/>');
 });
 
 app.get('/urls.json', (req, res) => {
@@ -26,9 +27,9 @@ app.get('/urls.json', (req, res) => {
 });
 
 app.get('/urls', (req, res) => {
-  const userID = req.session.user_id;
+  const userID = req.session.user_id; //only logged in users will have a cookie
   const user = users[userID];
-  const userURLs = urlsForUser(userID);
+  const userURLs = urlsForUser(userID, urlDatabase);
 
   const templateVars = {
     urls: userURLs,
@@ -36,7 +37,7 @@ app.get('/urls', (req, res) => {
   };
 
   if (!user) {
-    return res.status(401).send('<p>Make sure you are logged in</p>');
+    return res.status(401).send('<h3>Make sure you are logged in!<h3> Login <a href="/login">here</a>');
   }
 
   res.render("urls_index", templateVars);
@@ -47,7 +48,7 @@ app.get('/urls/new', (req, res) => {
   const userID = req.session.user_id;
 
   if (!userID) {
-    return res.redirect('/login');
+    return res.status(401).send('<h3>Make sure you are logged in!<h3> Login <a href="/login">here</a>');
   }
 
   const user = users[userID];
@@ -59,16 +60,27 @@ app.get('/urls/new', (req, res) => {
 });
 
 app.get('/urls/:id', (req, res) => {
-  const userID = req.session.user_id;
-  const user = users[userID];
+  const loggedInUser = req.session.user_id;
+  const user = users[loggedInUser]; //accessing users database
+  const url = urlDatabase[req.params.id]; //accessing urlDatabase object
   const templateVars = {
     id: req.params.id,
     longURL: urlDatabase[req.params.id].longURL,
     user: user
   };
 
+  //checks if the user is logged in
+  if (!loggedInUser) {
+    return res.status(401).send('<h3>Make sure you are logged in!</h3> Login <a href="/login">here</a>');
+  }
+
+  //checks if the user owns the url
+  if (url.userID !== loggedInUser) {
+   return res.status(401).send('<h2>Unathorized to view this page<h2>');
+  }
+
   if (!user) {
-    return res.status(400).send('Make sure you are logged in');
+    return res.status(400).send('<h3>Make sure you are logged in!<h3> Login <a href="/login">here</a>');
   }
   res.render('urls_show', templateVars);
 });
@@ -79,20 +91,20 @@ app.post('/urls/:id', (req, res) => {
 
   //check if the ID is in the database
   if (!urlDatabase[req.params.id]) {
-    return res.status(400).send('<p>The ID does not exist.</p>');
+    return res.status(400).send('<h2>The ID does not exist.</h2>');
   }
   //check if user is logged in
   if (!userID) {
-    return res.status(400).send('<p>Please login to continue.</p>');
+    return res.status(400).send('<h3>Please login to continue. </h3> Login <a href="/login">here</a>');
   }
 
   if (!isValidHttpUrl(req.body.url)) {
-    return res.status(400).send('<p>Invalid URL. Please enter the complete URL</p>');
+    return res.status(400).send('<h3>Invalid URL. Please enter the complete URL</h3>');
   }
 
   //check if userID matches the URL
   if (userID !== url.userID) {
-    return res.status(400).send('<p>URL provided does not match</p>');
+    return res.status(400).send('<h2>Only accessible to URL owner</h2>');
   }
 
   urlDatabase[req.params.id].longURL = req.body.url;
@@ -120,20 +132,8 @@ app.post('/urls', (req, res) => {
 
 //handles short URL that does not exist in the database
 app.get('/u/:id', (req, res) => {
-  const userID = req.session.user_id;
   const url = urlDatabase[req.params.id];
 
-  if (!url) {
-    return res.status(401).send('<p>Invalid URL. Please enter the complete URL</p>');
-  }
-  //checks if the user is logged in
-  if (!userID) {
-    return res.status(401).send('<p>Make sure you are logged in</p>');
-  }
-  //checks if the user owns the url
-  if (userID !== url.userID) {
-    return res.status(401).send('<p>Error</p>');
-  }
   res.redirect(url.longURL);
 });
 
@@ -148,11 +148,11 @@ app.post('/urls/:id/delete', (req, res) => {
   }
   //check if user is logged in
   if (!userID) {
-    return res.status(400).send('<p>Please login to continue.</p>');
+    return res.status(400).send('<h3>Please login to continue.</h3> Login <a href="/login">here</a>');
   }
   //check if userID matches the URL
   if (userID !== url.userID) {
-    return res.status(400).send('<p>URL provided does not match</p>');
+    return res.status(400).send('<h3>URL provided does not match</h3>');
   }
   //deletes
   delete urlDatabase[req.params.id];

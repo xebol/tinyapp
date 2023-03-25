@@ -29,7 +29,7 @@ const generateRandomString = function() {
 };
 
 //Adding URLS for the user
-const urlsForUser = function(userId) {
+const urlsForUser = function(userId, urlDatabase) {
   const result = {};
   for (let key in urlDatabase) {
     if (urlDatabase[key].userID === userId) {
