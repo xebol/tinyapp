@@ -3,7 +3,8 @@ const app = express();
 const morgan = require('morgan');
 const bcrypt = require('bcryptjs');
 const cookieSession = require('cookie-session');
-const { getUserByEmail } = require('./helpers');
+const { getUserByEmail, isValidHttpUrl, generateRandomString, urlsForUser } = require('./helpers');
+const { urlDatabase, users } = require('./databases');
 const PORT = 8080;
 
 app.use(express.urlencoded({ extended: true })); //populates req.body
@@ -14,61 +15,6 @@ app.use(cookieSession({
   keys: ['secret']
 }));
 
-const isValidHttpUrl = function(string) {
-  let url;
-  try {
-    url = new URL(string);
-  } catch (_) {
-    return false;
-  }
-  return url.protocol === "http:" || url.protocol === "https:";
-};
-
-const generateRandomString = function() {
-  const string = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-  let uniqueID = '';
-  for (let i = 0; i < 6; i++) {
-    uniqueID += string.charAt(Math.floor(Math.random() * string.length));
-  }
-  return uniqueID;
-};
-
-const urlsForUser = function(userId) {
-  const result = {};
-  for (let key in urlDatabase) {
-    if (urlDatabase[key].userID === userId) {
-      result[key] = {
-        longURL: urlDatabase[key].longURL,
-        userID: userId
-      };
-    }
-  }
-  return result;
-};
-
-const urlDatabase = {
-  b6UTxQ: {
-    longURL: "https://www.tsn.ca",
-    userID: "aJ48lW",
-  },
-  i3BoGr: {
-    longURL: "https://www.google.ca",
-    userID: "aJ48lW",
-  },
-};
-
-const users = {
-  'abc123': {
-    id: 'abc123',
-    email: 'a@a.com',
-    password: '$2a$10$6Z24AtPDa.4PPGIr5boFhePdHJ/rIyFGAlRv0uAqpqn2pjup4rh92' //1234
-  },
-  'def435': {
-    id: 'def435',
-    email: 'b@b.com',
-    password: '$2a$10$6Z24AtPDa.4PPGIr5boFhePdHJ/rIyFGAlRv0uAqpqn2pjup4rh92' //1234
-  }
-};
 
 //Homepage
 app.get('/', (req, res) => {
@@ -149,12 +95,7 @@ app.post('/urls/:id', (req, res) => {
     return res.status(400).send('<p>URL provided does not match</p>');
   }
 
-
-  console.log('urls post', url);
-  console.log('req.params.id', req.params.id);
   urlDatabase[req.params.id].longURL = req.body.url;
-  console.log('urlDatabase', urlDatabase);
-  console.log('req.body.url', req.body.url);
   res.redirect('/urls');
 });
 
